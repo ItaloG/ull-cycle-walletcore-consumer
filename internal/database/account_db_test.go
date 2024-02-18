@@ -38,7 +38,7 @@ func (s *AccountDBTestSuite) TestSave() {
 	s.Nil(err)
 }
 
-func (s *AccountDBTestSuite) TestFindByID() {
+func (s *AccountDBTestSuite) TestFindByIDWhenAccountExists() {
 	account := entity.NewAccount("id", 100)
 	stmt, err := s.db.Prepare("INSERT INTO accounts (id, balance, created_at) VALUES (?, ?, ?)")
 	s.Nil(err)
@@ -47,6 +47,19 @@ func (s *AccountDBTestSuite) TestFindByID() {
 
 	accountDB, err := s.accountDB.FindByID(account.ID)
 	s.Nil(err)
+	s.Equal(account.ID, accountDB.ID)
+	s.Equal(account.Balance, accountDB.Balance)
+}
+
+func (s *AccountDBTestSuite) TestFindByIDWhenAccountNotExists() {
+	account := entity.NewAccount("id", 100)
+	stmt, err := s.db.Prepare("INSERT INTO accounts (id, balance, created_at) VALUES (?, ?, ?)")
+	s.Nil(err)
+	defer stmt.Close()
+	stmt.Exec(account.ID, account.Balance, account.CreatedAt)
+
+	accountDB, err := s.accountDB.FindByID("invalid_id")
+	s.Equal(err, "account not found")
 	s.Equal(account.ID, accountDB.ID)
 	s.Equal(account.Balance, accountDB.Balance)
 }

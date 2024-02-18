@@ -22,9 +22,12 @@ func NewUpdateBalanceUseCase(accountGateway gateway.AccountGateway) *UpdateBalan
 
 func (uc *UpdateBalanceUseCase) Execute(input UpdateBalanceInputDTO) error {
 	account, err := uc.AccountGateway.FindByID(input.AccountID)
-	if err != nil {
+	if err.Error() == "account not found" {
 		newAccount := entity.NewAccount(input.AccountID, input.Balance)
 		return uc.AccountGateway.Save(newAccount)
+	}
+	if err != nil {
+		return err
 	}
 
 	return uc.AccountGateway.UpdateBalance(account)
